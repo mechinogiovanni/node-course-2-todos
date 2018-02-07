@@ -6,9 +6,13 @@ const request = require('supertest');
 const {app} = require('./../server.js');
 const {Todo} = require('./../models/todo.js');
 
+const todos = [{text: 'Test todo text'}, {text: "Test todo text"}];
+
 beforeEach( (done) => {
   Todo.remove({}).then(() => {
-    done()
+    Todo.insertMany(todos);
+  }).then(() => {
+    done();
   });
 });
 
@@ -29,13 +33,13 @@ describe('POST /todos', () => {
       }
 
       Todo.find().then((todos) => {
-        expect(todos.length).toBe(1);
+        expect(todos.length).toBe(3);
         expect(todos[0].text).toBe(text);
         done();
       }).catch((e) => {
         done(e);
       });
-    })
+    });
   });
 
 
@@ -51,11 +55,23 @@ describe('POST /todos', () => {
       }
 
       Todo.find().then((todos) => {
-        expect(todos.length).toBe(0);
+        expect(todos.length).toBe(2);
         done();
       }).catch((e) => {
         done(e);
       });
     });
+  });
+});
+
+describe('GET /todos', (done) => {
+  it('shoul get all todos', () => {
+    request(app)
+      .get('/todos')
+      .expect(200)
+      .expect((res) => {
+      expect(res.body.todos.length).toBe(2);
+      })
+      .end(done);
   });
 });
